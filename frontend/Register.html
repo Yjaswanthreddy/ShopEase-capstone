@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <div class="form-panel">
+        <h2>Create account</h2>
+        <div id="alert"></div>
+        <form id="form">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" required minlength="2" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="password">Password (min 8)</label>
+            <input id="password" type="password" required minlength="8" />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Register</button>
+        </form>
+        <p style="margin-top:1rem"><a href="/Login.html">Already have an account?</a></p>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      document.getElementById('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alert = document.getElementById('alert');
+        alert.innerHTML = '';
+        const body = {
+          name: document.getElementById('name').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          password: document.getElementById('password').value,
+        };
+        try {
+          const d = await ShopEase.api('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+          ShopEase.setToken(d.token);
+          ShopEase.setUser(d.user);
+          window.location.href = '/Home.html';
+        } catch (err) {
+          const msg =
+            err.data && err.data.error
+              ? err.data.error
+              : err.message || 'Registration failed';
+          alert.innerHTML = '<div class="alert alert-error">' + msg + '</div>';
+        }
+      });
+    </script>
+  </body>
+</html>

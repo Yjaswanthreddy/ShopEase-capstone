@@ -1,0 +1,10 @@
+{
+  "customer": {
+    "email": "customer@shopease.test",
+    "password": "Customer123!"
+  },
+  "admin": {
+    "email": "admin@shopease.test",
+    "password": "Admin12345!"
+  }
+}

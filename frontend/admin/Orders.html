@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Orders — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <h1>All orders</h1>
+      <div id="alert"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Slot/City</th>
+              <th>Update</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </main>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      if (!ShopEase.getToken() || ShopEase.getUser().role !== 'admin') location.href = '/Login.html';
+
+      async function load() {
+        const d = await ShopEase.api('/orders/admin/all');
+        const tb = document.getElementById('rows');
+        tb.innerHTML = '';
+        d.orders.forEach((o) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>#' +
+            o.id +
+            '</td><td>' +
+            o.email +
+            '</td><td>' +
+            o.status +
+            '</td><td>$' +
+            Number(o.total_amount).toFixed(2) +
+            '</td><td>' +
+            o.shipping_city +
+            '</td><td><select class="st" data-id="' +
+            o.id +
+            '">' +
+            [
+              'pending_payment',
+              'paid',
+              'processing',
+              'shipped',
+              'delivered',
+              'cancelled',
+              'return_requested',
+              'returned',
+              'refunded',
+            ]
+              .map(
+                (s) =>
+                  '<option value="' + s + '"' + (o.status === s ? ' selected' : '') + '>' + s + '</option>'
+              )
+              .join('') +
+            '</select> <button class="btn btn-secondary save" data-id="' +
+            o.id +
+            '">Save</button></td>';
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll('.save').forEach((b) =>
+          b.addEventListener('click', async () => {
+            const row = b.closest('tr');
+            const sel = row.querySelector('select');
+            try {
+              await ShopEase.api('/orders/' + b.dataset.id + '/status', {
+                method: 'PATCH',
+                body: JSON.stringify({ status: sel.value }),
+              });
+              document.getElementById('alert').innerHTML =
+                '<div class="alert alert-success">Updated #' + b.dataset.id + '</div>';
+            } catch (e) {
+              document.getElementById('alert').innerHTML =
+                '<div class="alert alert-error">' + e.message + '</div>';
+            }
+          })
+        );
+      }
+      document.addEventListener('DOMContentLoaded', () => load().catch(console.error));
+    </script>
+  </body>
+</html>

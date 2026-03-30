@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Users — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <h1>Users</h1>
+      <div id="alert"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Change</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </main>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      if (!ShopEase.getToken() || ShopEase.getUser().role !== 'admin') location.href = '/Login.html';
+
+      async function load() {
+        const d = await ShopEase.api('/admin/users');
+        const tb = document.getElementById('rows');
+        tb.innerHTML = '';
+        d.users.forEach((u) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' +
+            u.id +
+            '</td><td>' +
+            u.email +
+            '</td><td>' +
+            u.name +
+            '</td><td>' +
+            u.role +
+            '</td><td><select class="role" data-id="' +
+            u.id +
+            '">' +
+            '<option value="customer"' +
+            (u.role === 'customer' ? ' selected' : '') +
+            '>customer</option>' +
+            '<option value="admin"' +
+            (u.role === 'admin' ? ' selected' : '') +
+            '>admin</option>' +
+            '</select> <button class="btn btn-secondary sv" data-id="' +
+            u.id +
+            '">Save</button></td>';
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll('.sv').forEach((b) =>
+          b.addEventListener('click', async () => {
+            const row = b.closest('tr');
+            const role = row.querySelector('select').value;
+            try {
+              await ShopEase.api('/admin/users/' + b.dataset.id + '/role', {
+                method: 'PATCH',
+                body: JSON.stringify({ role }),
+              });
+              document.getElementById('alert').innerHTML =
+                '<div class="alert alert-success">User updated</div>';
+            } catch (e) {
+              document.getElementById('alert').innerHTML =
+                '<div class="alert alert-error">' + e.message + '</div>';
+            }
+          })
+        );
+      }
+      document.addEventListener('DOMContentLoaded', () => load().catch(console.error));
+    </script>
+  </body>
+</html>

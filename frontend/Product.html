@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .gallery {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .gallery img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+      }
+      .gallery img.active {
+        border-color: var(--primary);
+      }
+      .hero-img {
+        width: 100%;
+        max-height: 360px;
+        object-fit: contain;
+        background: #e2e8f0;
+        border-radius: var(--radius);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <div id="alert"></div>
+      <div id="content" class="split">
+        <div>
+          <img id="main-img" class="hero-img" src="/assets/placeholder.svg" alt="" />
+          <div class="gallery" id="gallery"></div>
+        </div>
+        <div>
+          <p class="brand" id="brand"></p>
+          <h1 id="title"></h1>
+          <p class="rating" id="rating"></p>
+          <p class="price" id="price"></p>
+          <p id="stock"></p>
+          <p id="desc"></p>
+          <div class="card-actions" style="margin-top:1rem">
+            <label>Qty <input type="number" id="qty" min="1" value="1" style="width:4rem" /></label>
+            <button type="button" class="btn btn-primary" id="btn-cart">Add to cart</button>
+          </div>
+        </div>
+      </div>
+      <section style="margin-top:2rem">
+        <h2>Reviews</h2>
+        <div id="reviews"></div>
+        <div class="form-panel" style="max-width:none;margin:1rem 0 0;display:none" id="review-box">
+          <h3>Your review</h3>
+          <div class="field">
+            <label>Rating</label>
+            <select id="rev-rating">
+              <option>5</option>
+              <option>4</option>
+              <option>3</option>
+              <option>2</option>
+              <option>1</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Title</label>
+            <input id="rev-title" />
+          </div>
+          <div class="field">
+            <label>Comment</label>
+            <textarea id="rev-body" rows="3"></textarea>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-review">Submit review</button>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      let product = null;
+      let me = null;
+
+      function showAlert(msg, type) {
+        const a = document.getElementById('alert');
+        a.innerHTML = msg
+          ? '<div class="alert alert-' + (type || 'error') + '">' + msg + '</div>'
+          : '';
+      }
+
+      async function load() {
+        if (!id) {
+          showAlert('Missing product id');
+          return;
+        }
+        try {
+          const d = await ShopEase.api('/products/' + id);
+          product = d.product;
+          const imgs = d.images && d.images.length ? d.images : [{ url: '/assets/placeholder.svg' }];
+          document.getElementById('main-img').src = imgs[0].url;
+          document.getElementById('brand').textContent = product.brand;
+          document.getElementById('title').textContent = product.name;
+          document.getElementById('rating').textContent =
+            '★ ' + Number(product.rating_avg).toFixed(1);
+          document.getElementById('price').textContent = '$' + Number(product.price).toFixed(2);
+          document.getElementById('stock').innerHTML =
+            product.stock_quantity > 0
+              ? '<span class="stock-ok">' + product.stock_quantity + ' in stock</span>'
+              : '<span class="stock-low">Out of stock</span>';
+          document.getElementById('desc').textContent = product.description || '';
+          const g = document.getElementById('gallery');
+          g.innerHTML = '';
+          imgs.forEach((im, i) => {
+            const el = document.createElement('img');
+            el.src = im.url;
+            if (i === 0) el.classList.add('active');
+            el.addEventListener('click', () => {
+              document.getElementById('main-img').src = im.url;
+              g.querySelectorAll('img').forEach((x) => x.classList.remove('active'));
+              el.classList.add('active');
+            });
+            g.appendChild(el);
+          });
+
+          if (ShopEase.getToken()) {
+            try {
+              me = await ShopEase.api('/auth/me');
+            } catch {
+              me = null;
+            }
+            document.getElementById('review-box').style.display = 'block';
+          } else {
+            document.getElementById('review-box').style.display = 'none';
+          }
+          await loadReviews();
+        } catch (e) {
+          showAlert(e.message || 'Failed to load');
+        }
+      }
+
+      async function loadReviews() {
+        const d = await ShopEase.api('/reviews/product/' + id);
+        const box = document.getElementById('reviews');
+        box.innerHTML = '';
+        d.reviews.forEach((r) => {
+          const actions =
+            me && me.user && (me.user.id === r.user_id || me.user.role === 'admin')
+              ? ' <button class="btn btn-ghost btn-edit" data-id="' +
+                r.id +
+                '">Edit</button> <button class="btn btn-danger btn-del" data-id="' +
+                r.id +
+                '">Delete</button>'
+              : '';
+          box.insertAdjacentHTML(
+            'beforeend',
+            '<article style="border-bottom:1px solid #e2e8f0;padding:0.75rem 0">' +
+              '<strong>' +
+              (r.title || 'Review') +
+              '</strong> — ★' +
+              r.rating +
+              ' · ' +
+              r.author +
+              actions +
+              '<p style="margin:0.35rem 0 0">' +
+              (r.body || '') +
+              '</p></article>'
+          );
+        });
+        box.querySelectorAll('.btn-del').forEach((b) =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Delete review?')) return;
+            try {
+              await ShopEase.api('/reviews/' + b.dataset.id, { method: 'DELETE' });
+              await loadReviews();
+            } catch (e) {
+              showAlert(e.message);
+            }
+          })
+        );
+        box.querySelectorAll('.btn-edit').forEach((b) =>
+          b.addEventListener('click', async () => {
+            const nr = prompt('New rating 1-5');
+            const nt = prompt('New title');
+            if (!nr) return;
+            try {
+              await ShopEase.api('/reviews/' + b.dataset.id, {
+                method: 'PUT',
+                body: JSON.stringify({ rating: Number(nr), title: nt || null }),
+              });
+              await loadReviews();
+            } catch (e) {
+              showAlert(e.message);
+            }
+          })
+        );
+      }
+
+      document.getElementById('btn-cart').addEventListener('click', async () => {
+        if (!ShopEase.getToken()) {
+          window.location.href = '/Login.html';
+          return;
+        }
+        const qty = Number(document.getElementById('qty').value) || 1;
+        try {
+          await ShopEase.api('/cart/items', {
+            method: 'POST',
+            body: JSON.stringify({ product_id: Number(id), quantity: qty }),
+          });
+          showAlert('Added to cart', 'success');
+        } catch (e) {
+          showAlert(e.message || 'Could not add');
+        }
+      });
+
+      document.getElementById('btn-review').addEventListener('click', async () => {
+        if (!ShopEase.getToken()) {
+          window.location.href = '/Login.html';
+          return;
+        }
+        try {
+          await ShopEase.api('/reviews', {
+            method: 'POST',
+            body: JSON.stringify({
+              product_id: Number(id),
+              rating: Number(document.getElementById('rev-rating').value),
+              title: document.getElementById('rev-title').value,
+              body: document.getElementById('rev-body').value,
+            }),
+          });
+          showAlert('Review submitted', 'success');
+          await loadReviews();
+        } catch (e) {
+          showAlert(e.message || 'Review failed');
+        }
+      });
+
+      document.addEventListener('DOMContentLoaded', load);
+    </script>
+  </body>
+</html>

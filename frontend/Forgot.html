@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forgot password — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <div class="form-panel">
+        <h2>Reset password</h2>
+        <p class="muted" style="color:#64748b;font-size:0.9rem">
+          Enter your email. In development, the API may return a reset token in the JSON response.
+        </p>
+        <div id="alert"></div>
+        <form id="form">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Send reset</button>
+        </form>
+        <p style="margin-top:1rem"><a href="/Login.html">Back to login</a></p>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      document.getElementById('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alert = document.getElementById('alert');
+        alert.innerHTML = '';
+        const email = document.getElementById('email').value.trim();
+        try {
+          const d = await ShopEase.api('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+          });
+          let html = '<div class="alert alert-success">' + (d.message || 'OK') + '</div>';
+          if (d.dev_reset_token) {
+            html +=
+              '<div class="alert alert-info">Dev token: <code>' +
+              d.dev_reset_token +
+              '</code><br/><a href="/Reset.html?token=' +
+              encodeURIComponent(d.dev_reset_token) +
+              '">Open reset page</a></div>';
+          }
+          alert.innerHTML = html;
+        } catch (err) {
+          alert.innerHTML =
+            '<div class="alert alert-error">' + (err.message || 'Failed') + '</div>';
+        }
+      });
+    </script>
+  </body>
+</html>

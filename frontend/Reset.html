@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Set new password — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <div class="form-panel">
+        <h2>New password</h2>
+        <div id="alert"></div>
+        <form id="form">
+          <div class="field">
+            <label for="token">Reset token</label>
+            <input id="token" required />
+          </div>
+          <div class="field">
+            <label for="password">New password</label>
+            <input id="password" type="password" minlength="8" required />
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Update</button>
+        </form>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      const p = new URLSearchParams(location.search);
+      document.getElementById('token').value = p.get('token') || '';
+      document.getElementById('form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alert = document.getElementById('alert');
+        alert.innerHTML = '';
+        try {
+          await ShopEase.api('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({
+              token: document.getElementById('token').value.trim(),
+              password: document.getElementById('password').value,
+            }),
+          });
+          alert.innerHTML =
+            '<div class="alert alert-success">Password updated. <a href="/Login.html">Login</a></div>';
+        } catch (err) {
+          alert.innerHTML =
+            '<div class="alert alert-error">' + (err.message || 'Failed') + '</div>';
+        }
+      });
+    </script>
+  </body>
+</html>

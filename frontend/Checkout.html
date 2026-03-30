@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <h1>Checkout</h1>
+      <div id="alert"></div>
+      <div class="split">
+        <div class="form-panel" style="margin:0;max-width:none">
+          <h2>Shipping address</h2>
+          <form id="addr">
+            <div class="field">
+              <label>Full name</label>
+              <input name="shipping_name" required />
+            </div>
+            <div class="field">
+              <label>Address line 1</label>
+              <input name="shipping_line1" required />
+            </div>
+            <div class="field">
+              <label>Address line 2</label>
+              <input name="shipping_line2" />
+            </div>
+            <div class="field">
+              <label>City</label>
+              <input name="shipping_city" required />
+            </div>
+            <div class="field">
+              <label>Postal code</label>
+              <input name="shipping_postal" required />
+            </div>
+            <div class="field">
+              <label>Country</label>
+              <input name="shipping_country" value="IN" />
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-place">Place order</button>
+          </form>
+        </div>
+        <div class="form-panel" style="margin:0;max-width:none;display:none" id="pay-panel">
+          <h2>Payment simulation</h2>
+          <div class="field">
+            <label>Method</label>
+            <select id="pay-method">
+              <option value="credit_card">Credit card</option>
+              <option value="debit_card">Debit card</option>
+              <option value="upi">UPI</option>
+            </select>
+          </div>
+          <div id="card-fields">
+            <div class="field">
+              <label>Cardholder</label>
+              <input id="holder" placeholder="Jane Doe" />
+            </div>
+            <div class="field">
+              <label>PAN</label>
+              <input id="pan" placeholder="4242424242424242 success · 4000000000000002 insufficient" />
+            </div>
+            <div class="field">
+              <label>Expiry MM/YY</label>
+              <input id="expiry" placeholder="12/30" />
+            </div>
+            <div class="field">
+              <label>CVV</label>
+              <input id="cvv" placeholder="123" />
+            </div>
+          </div>
+          <div id="upi-fields" style="display:none">
+            <div class="field">
+              <label>UPI ID</label>
+              <input id="upi" placeholder="you@ybl or nofunds.user@oksbi" />
+            </div>
+          </div>
+          <p style="font-size:0.85rem;color:#64748b">
+            Valid UPI suffixes: @ybl, @upi, @oksbi, @okhdfc. Invalid: not matching suffix.
+          </p>
+          <button type="button" class="btn btn-primary" id="btn-pay">Pay now</button>
+        </div>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/payment-validation.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      if (!ShopEase.getToken()) location.href = '/Login.html';
+      let orderId = null;
+
+      function alertMsg(m, t) {
+        document.getElementById('alert').innerHTML = m
+          ? '<div class="alert alert-' + (t || 'error') + '">' + m + '</div>'
+          : '';
+      }
+
+      document.getElementById('pay-method').addEventListener('change', () => {
+        const m = document.getElementById('pay-method').value;
+        document.getElementById('card-fields').style.display = m === 'upi' ? 'none' : 'block';
+        document.getElementById('upi-fields').style.display = m === 'upi' ? 'block' : 'none';
+      });
+
+      document.getElementById('addr').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const body = Object.fromEntries(fd.entries());
+        try {
+          const d = await ShopEase.api('/orders/checkout', { method: 'POST', body: JSON.stringify(body) });
+          orderId = d.order_id;
+          alertMsg('Order ' + orderId + ' created. Total $' + Number(d.total_amount).toFixed(2), 'success');
+          document.getElementById('pay-panel').style.display = 'block';
+        } catch (err) {
+          alertMsg(err.message || 'Checkout failed');
+        }
+      });
+
+      document.getElementById('btn-pay').addEventListener('click', async () => {
+        if (!orderId) return;
+        const method = document.getElementById('pay-method').value;
+        let payload = { order_id: orderId, method };
+        if (method === 'upi') {
+          const upi = document.getElementById('upi').value.trim();
+          const v = ShopEasePayment.validateUPI(upi);
+          if (!v.ok) {
+            alertMsg(v.message);
+            return;
+          }
+          payload.upi_id = upi;
+        } else {
+          const card = {
+            holder: document.getElementById('holder').value,
+            pan: document.getElementById('pan').value,
+            expiry: document.getElementById('expiry').value,
+            cvv: document.getElementById('cvv').value,
+          };
+          const v = ShopEasePayment.validateCard(card);
+          if (!v.ok) {
+            alertMsg(v.message);
+            return;
+          }
+          Object.assign(payload, card);
+        }
+        try {
+          await ShopEase.api('/payments/process', { method: 'POST', body: JSON.stringify(payload) });
+          alertMsg('Payment successful. <a href="/Orders.html">View orders</a>', 'success');
+        } catch (err) {
+          alertMsg(err.message || 'Payment failed');
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <h1>Your orders</h1>
+      <div id="alert"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>City</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      if (!ShopEase.getToken()) location.href = '/Login.html';
+
+      function alertMsg(m, t) {
+        document.getElementById('alert').innerHTML = m
+          ? '<div class="alert alert-' + (t || 'error') + '">' + m + '</div>'
+          : '';
+      }
+
+      async function load() {
+        const d = await ShopEase.api('/orders');
+        const tb = document.getElementById('rows');
+        tb.innerHTML = '';
+        d.orders.forEach((o) => {
+          const canCancel = ['pending_payment', 'paid', 'processing'].includes(o.status);
+          const canReturn = ['shipped', 'delivered'].includes(o.status);
+          const canRefund = ['return_requested', 'returned'].includes(o.status);
+          const tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>#' +
+            o.id +
+            '</td><td>' +
+            o.status +
+            '</td><td>$' +
+            Number(o.total_amount).toFixed(2) +
+            '</td><td>' +
+            o.shipping_city +
+            '</td><td>' +
+            new Date(o.created_at).toLocaleString() +
+            '</td><td>' +
+            (canCancel
+              ? '<button class="btn btn-secondary btn-cancel" data-id="' + o.id + '">Cancel</button> '
+              : '') +
+            (canReturn
+              ? '<button class="btn btn-secondary btn-ret" data-id="' + o.id + '">Return</button> '
+              : '') +
+            (canRefund
+              ? '<button class="btn btn-primary btn-ref" data-id="' + o.id + '">Simulate refund</button> '
+              : '') +
+            '</td>';
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll('.btn-cancel').forEach((b) =>
+          b.addEventListener('click', async () => {
+            try {
+              await ShopEase.api('/orders/' + b.dataset.id + '/cancel', { method: 'POST' });
+              alertMsg('Order cancelled', 'success');
+              await load();
+            } catch (e) {
+              alertMsg(e.message);
+            }
+          })
+        );
+        tb.querySelectorAll('.btn-ret').forEach((b) =>
+          b.addEventListener('click', async () => {
+            try {
+              await ShopEase.api('/orders/' + b.dataset.id + '/return', { method: 'POST' });
+              alertMsg('Return requested', 'success');
+              await load();
+            } catch (e) {
+              alertMsg(e.message);
+            }
+          })
+        );
+        tb.querySelectorAll('.btn-ref').forEach((b) =>
+          b.addEventListener('click', async () => {
+            try {
+              await ShopEase.api('/payments/refund/' + b.dataset.id, { method: 'POST' });
+              alertMsg('Refund simulated', 'success');
+              await load();
+            } catch (e) {
+              alertMsg(e.message);
+            }
+          })
+        );
+      }
+
+      document.addEventListener('DOMContentLoaded', () => load().catch((e) => alertMsg(e.message)));
+    </script>
+  </body>
+</html>

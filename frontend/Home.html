@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShopEase — Home</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <section class="hero">
+        <h1>Welcome to ShopEase</h1>
+        <p>Search, filter, and shop with confidence — full-stack capstone demo.</p>
+      </section>
+      <div id="alert"></div>
+      <div class="toolbar">
+        <label>Category
+          <select id="f-category"><option value="">All</option></select>
+        </label>
+        <label>Brand
+          <select id="f-brand"><option value="">All</option></select>
+        </label>
+        <label>Min price
+          <input type="number" id="f-min" step="0.01" min="0" placeholder="0" />
+        </label>
+        <label>Max price
+          <input type="number" id="f-max" step="0.01" min="0" placeholder="9999" />
+        </label>
+        <label>Min rating
+          <input type="number" id="f-rating" step="0.1" min="0" max="5" placeholder="0" />
+        </label>
+        <label>In stock
+          <select id="f-stock">
+            <option value="">Any</option>
+            <option value="1">In stock only</option>
+          </select>
+        </label>
+        <label>Sort
+          <select id="f-sort">
+            <option value="name">Name A–Z</option>
+            <option value="price_asc">Price: low → high</option>
+            <option value="price_desc">Price: high → low</option>
+            <option value="latest">Latest</option>
+            <option value="popularity">Popularity</option>
+            <option value="rating">Rating</option>
+          </select>
+        </label>
+        <button type="button" class="btn btn-secondary" id="btn-apply">Apply</button>
+      </div>
+      <div id="product-grid" class="grid-products"></div>
+      <div class="loading" id="loading">Loading…</div>
+      <div style="text-align:center;margin-top:1rem">
+        <button type="button" class="btn btn-secondary" id="btn-more" style="display:none">Load more</button>
+      </div>
+    </main>
+    <footer class="site-footer">ShopEase Capstone · QA + Automation ready</footer>
+    <script>
+      const params = new URLSearchParams(location.search);
+      window.__initialSearch = params.get('q') || '';
+    </script>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script src="/js/home.js"></script>
+  </body>
+</html>

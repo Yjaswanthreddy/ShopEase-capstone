@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin — ShopEase</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header"></header>
+    <main>
+      <h1>Admin dashboard</h1>
+      <div id="alert"></div>
+      <div class="grid-products" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+        <div class="card"><div class="card-body"><h3>Users</h3><p id="c-users">—</p></div></div>
+        <div class="card"><div class="card-body"><h3>Products</h3><p id="c-products">—</p></div></div>
+        <div class="card"><div class="card-body"><h3>Orders</h3><p id="c-orders">—</p></div></div>
+        <div class="card"><div class="card-body"><h3>Net revenue</h3><p id="c-rev">—</p></div></div>
+      </div>
+      <p style="margin-top:1.5rem">
+        <a href="/admin/Products.html">Manage products</a> ·
+        <a href="/admin/Orders.html">Manage orders</a> ·
+        <a href="/admin/Users.html">Manage users</a>
+      </p>
+    </main>
+    <footer class="site-footer">ShopEase Admin</footer>
+    <script src="/js/api.js"></script>
+    <script src="/js/nav.js"></script>
+    <script>
+      (async () => {
+        const u = ShopEase.getUser();
+        if (!ShopEase.getToken() || !u || u.role !== 'admin') {
+          location.href = '/Login.html';
+          return;
+        }
+        try {
+          const d = await ShopEase.api('/admin/dashboard');
+          document.getElementById('c-users').textContent = d.counts.users;
+          document.getElementById('c-products').textContent = d.counts.products;
+          document.getElementById('c-orders').textContent = d.counts.orders;
+          document.getElementById('c-rev').textContent =
+            '$' + Number(d.revenue.net).toFixed(2) + ' (net after refunds)';
+        } catch (e) {
+          document.getElementById('alert').innerHTML =
+            '<div class="alert alert-error">' + e.message + '</div>';
+        }
+      })();
+    </script>
+  </body>
+</html>
