@@ -1,0 +1,117 @@
+name: Playwright + Allure Pages
+
+on:
+  push:
+    branches: [gh-pages, main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test-and-build-allure:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: pass@word1
+          MYSQL_DATABASE: shopease
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppass@word1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      CI: "true"
+      NODE_ENV: test
+      PORT: 5000
+      PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: pass@word1
+      DB_NAME: shopease
+      JWT_SECRET: test-secret-for-ci
+      JWT_EXPIRES_IN: 7d
+      PLAYWRIGHT_BASE_URL: http://localhost:5000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium firefox
+
+      - name: Wait for MySQL port
+        run: |
+          for i in {1..60}; do
+            (echo > /dev/tcp/127.0.0.1/3306) >/dev/null 2>&1 && exit 0
+            sleep 2
+          done
+          echo "MySQL did not become ready in time"
+          exit 1
+
+      - name: Seed database
+        run: npm run seed
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+
+      - name: Validate Allure results
+        if: always()
+        run: |
+          FILE_COUNT=$(rg --files automation/reports/allure-results | wc -l | tr -d ' ')
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "Allure results are empty. No test cases were captured."
+            exit 1
+          fi
+
+      - name: Generate Allure report
+        if: always()
+        run: npm run allure:generate
+
+      - name: Setup GitHub Pages
+        if: always()
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: automation/reports/allure-report
+
+  deploy:
+    needs: test-and-build-allure
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

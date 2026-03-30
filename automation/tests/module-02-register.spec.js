@@ -42,10 +42,10 @@ test.describe('Module 02 — Register (15 cases)', () => {
     const p = new RegisterPage(page);
     await p.open();
     const email = uniqueEmail(6);
-    await p.register('A', email, 'Password123!');
+    await p.register('Alpha', email, 'Password123!');
     await expect(page).toHaveURL(/Home\.html/);
     await p.open();
-    await p.register('B', email, 'Password123!');
+    await p.register('Beta', email, 'Password123!');
     await expect(p.alert).toContainText(/already|registered|409/i);
   });
 

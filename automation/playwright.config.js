@@ -10,11 +10,12 @@ module.exports = defineConfig({
   testDir: path.join(__dirname, 'tests'),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  retries: 0,
+  workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['list'],
     ['html', { outputFolder: path.join(__dirname, 'reports/html-report'), open: 'never' }],
+    ['allure-playwright', { outputFolder: path.join(__dirname, 'reports/allure-results') }],
   ],
   use: {
     baseURL: getBaseUrl(),

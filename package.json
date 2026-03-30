@@ -10,7 +10,9 @@
     "seed": "node database/seed.js",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report automation/reports/html-report"
+    "test:e2e:report": "playwright show-report automation/reports/html-report",
+    "allure:generate": "allure generate automation/reports/allure-results --clean -o automation/reports/allure-report",
+    "allure:open": "allure open automation/reports/allure-report"
   },
   "engines": {
     "node": ">=18"
@@ -27,6 +29,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
+    "allure-commandline": "^2.38.1",
+    "allure-playwright": "^3.6.0",
     "nodemon": "^3.1.7"
   }
 }

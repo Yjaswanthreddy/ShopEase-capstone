@@ -60,7 +60,7 @@ test.describe('Module 06 — Cart (15 cases)', () => {
 
   test('TC-M06-07 Remove line empties cart', async ({ page }) => {
     const pr = new ProductPage(page);
-    await pr.openById(5);
+    await pr.openById(4);
     await pr.btnAddCart.click();
     const c = new CartPage(page);
     await c.open();

@@ -32,7 +32,7 @@ test.describe('Module 10 — Admin management (15 cases)', () => {
     await m.productStock.fill('20');
     await m.productSubmit.click();
     await expect(m.productsAlert).toContainText(/created/i);
-    await expect(m.productRows).toContainText(name);
+    await expect(m.productRows.filter({ hasText: name }).first()).toBeVisible();
   });
 
   test('TC-M10-04 Products table has rows', async ({ page }) => {
