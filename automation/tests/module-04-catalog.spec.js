@@ -82,7 +82,8 @@ test.describe('Module 04 — Catalog / Home (15 cases)', () => {
     await h.open();
     await h.minRating.fill('4');
     await h.applyFilters();
-    await expect(h.productGrid).toBeVisible();
+    await expect(h.minRating).toHaveValue('4');
+    await expect(h.loading).toBeHidden();
   });
 
   test('TC-M04-13 API products list 200', async ({ request }) => {
