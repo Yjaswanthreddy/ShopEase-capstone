@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "ShopEase" [ref=e4] [cursor=pointer]:
+        - /url: /Home.html
+      - generic [ref=e5]:
+        - searchbox "Search" [ref=e6]
+        - button "Search" [ref=e7] [cursor=pointer]
+      - navigation [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /Home.html
+        - link "Catalog" [ref=e10] [cursor=pointer]:
+          - /url: /Product.html
+        - link "Cart0" [ref=e11] [cursor=pointer]:
+          - /url: /Cart.html
+        - link "Checkout" [ref=e12] [cursor=pointer]:
+          - /url: /Checkout.html
+        - link "Orders" [ref=e13] [cursor=pointer]:
+          - /url: /Orders.html
+        - button "Logout (Jane Customer)" [ref=e14] [cursor=pointer]
+  - main [ref=e15]:
+    - heading "Shopping cart" [level=1] [ref=e16]
+    - table [ref=e18]:
+      - rowgroup [ref=e19]:
+        - row "Product Price Qty Line" [ref=e20]:
+          - columnheader "Product" [ref=e21]
+          - columnheader "Price" [ref=e22]
+          - columnheader "Qty" [ref=e23]
+          - columnheader "Line" [ref=e24]
+          - columnheader [ref=e25]
+      - rowgroup [ref=e26]:
+        - row "Cart is empty" [ref=e27]:
+          - cell "Cart is empty" [ref=e28]
+    - paragraph [ref=e29]:
+      - text: "Subtotal:"
+      - strong [ref=e30]: $0.00
+  - contentinfo [ref=e31]: ShopEase
+```

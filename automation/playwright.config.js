@@ -15,7 +15,7 @@ module.exports = defineConfig({
   reporter: [
     ['list'],
     ['html', { outputFolder: path.join(__dirname, 'reports/html-report'), open: 'never' }],
-    ['allure-playwright', { outputFolder: path.join(__dirname, 'reports/allure-results') }],
+    ['allure-playwright', { resultsDir: path.join(__dirname, 'reports/allure-results') }],
   ],
   use: {
     baseURL: getBaseUrl(),

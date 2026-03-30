@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "ShopEase" [ref=e4] [cursor=pointer]:
+        - /url: /Home.html
+      - generic [ref=e5]:
+        - searchbox "Search" [ref=e6]
+        - button "Search" [ref=e7] [cursor=pointer]
+      - navigation [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /Home.html
+        - link "Catalog" [ref=e10] [cursor=pointer]:
+          - /url: /Product.html
+        - link "Cart0" [ref=e11] [cursor=pointer]:
+          - /url: /Cart.html
+        - link "Checkout" [ref=e12] [cursor=pointer]:
+          - /url: /Checkout.html
+        - link "Orders" [ref=e13] [cursor=pointer]:
+          - /url: /Orders.html
+        - button "Logout (Jane Customer)" [ref=e14] [cursor=pointer]
+  - main [ref=e15]:
+    - heading "Checkout" [level=1] [ref=e16]
+    - generic [ref=e18]: Cart is empty
+    - generic [ref=e20]:
+      - heading "Shipping address" [level=2] [ref=e21]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Full name
+          - textbox [ref=e25]: QA Automation
+        - generic [ref=e26]:
+          - generic [ref=e27]: Address line 1
+          - textbox [ref=e28]: 100 Test Lane
+        - generic [ref=e29]:
+          - generic [ref=e30]: Address line 2
+          - textbox [ref=e31]
+        - generic [ref=e32]:
+          - generic [ref=e33]: City
+          - textbox [ref=e34]: Bengaluru
+        - generic [ref=e35]:
+          - generic [ref=e36]: Postal code
+          - textbox [ref=e37]: "560001"
+        - generic [ref=e38]:
+          - generic [ref=e39]: Country
+          - textbox [ref=e40]: IN
+        - button "Place order" [active] [ref=e41] [cursor=pointer]
+  - contentinfo [ref=e42]: ShopEase
+```

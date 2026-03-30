@@ -88,6 +88,10 @@ jobs:
         run: |
           if [ -d automation/reports/allure-results ]; then
             FILE_COUNT=$(ls -1 automation/reports/allure-results | wc -l | tr -d ' ')
+          elif [ -d allure-results ]; then
+            mkdir -p automation/reports
+            cp -R allure-results automation/reports/allure-results
+            FILE_COUNT=$(ls -1 automation/reports/allure-results | wc -l | tr -d ' ')
           else
             FILE_COUNT=0
           fi
